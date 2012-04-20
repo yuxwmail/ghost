@@ -1,0 +1,21 @@
+<rules name="default" defaultReadDataSourceKey="dataSource1" defaultWriteDataSourceKey="dataSource2">
+  <rule name="rule4">
+    <sqlmap>org.knot.ghost.core.persistence.AccountMapper.getAccountByUsername</sqlmap>
+    <expression>$ROOT.equals(&apos;11&apos;)</expression>
+    <targetDataSource key="dataSource1">
+      <replacementTable originalTableName="account" targetTableName="account1"/>
+    </targetDataSource>
+  </rule>
+  <rule name="rule5">
+    <sqlmap>org.knot.ghost.core.persistence.AccountMapper.getAccountByUsername</sqlmap>
+    <expression>$ROOT.equals(&apos;13&apos;)</expression>
+    <targetDataSource key="dataSource2">
+      <replacementTable originalTableName="account" targetTableName="account1"/>
+    </targetDataSource>
+  </rule>
+  <rule name="rule6">
+    <sqlmap>org.knot.ghost.core.persistence.AccountMapper.getAccountByUsername</sqlmap>
+    <expression>$ROOT.equals(&apos;2&apos;)</expression>
+    <targetDataSource key="dataSource1"/>
+  </rule>
+</rules>
