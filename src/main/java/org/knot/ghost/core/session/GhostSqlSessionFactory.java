@@ -116,7 +116,7 @@ public class GhostSqlSessionFactory implements IGhostSqlSessionFactory, SqlSessi
 	      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
 	      Transaction tx = transactionFactory.newTransaction(connection, autoCommit);
 	      Executor executor = configuration.newExecutor(tx, execType);
-	      return new DefaultSqlSession(configuration, executor, autoCommit);
+	      return new GhostDefaultSqlSession(configuration, executor, autoCommit);
 	    } catch (Exception e) {
 	      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
 	    } finally {

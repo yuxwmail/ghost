@@ -314,8 +314,7 @@ public class GhostSqlSessionTemplate implements SqlSession {
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-            // 可以在这里做多数据源的路由切换；
-            logger.info("begin routor...");
+            
 
             logger.info("interceptor  method :" + method.getName());
 
@@ -336,6 +335,7 @@ public class GhostSqlSessionTemplate implements SqlSession {
                 status = StatusEnum.UPDATE;
             }
 
+            logger.info("create  routingFact...");
             MyBatisRoutingFact routingFact = new MyBatisRoutingFact(sqlmap, argument);
             routingFact.setStatus(status);
 
@@ -344,7 +344,9 @@ public class GhostSqlSessionTemplate implements SqlSession {
             GhostConfiguration ghostConfiguration = (GhostConfiguration) ghostSessionFactory.getConfiguration();
 
             Map<String, Environment> mapEnvironment = ghostConfiguration.getEnvironments();
-
+            
+            // 可以在这里做多数据源的路由切换；
+            logger.info("begin router...");
             RoutingResult routingResult = ghostConfiguration.getRouter().doRoute(routingFact);
 
             List<String> dataSourceKey = null;
@@ -448,7 +450,7 @@ public class GhostSqlSessionTemplate implements SqlSession {
 
                 try {
                     Object result = method.invoke(sqlSession, args);
-                    if (!GhostSqlSessionUtils.isSqlSessionTransactional(sqlSession, request.getEnvironment().getDataSource())) {
+                    if (!GhostSqlSessionUtils.isSqlSessionTransactional(sqlSession, request.getEnvironment())) {
                         sqlSession.commit();
                     }
                     return result;
@@ -460,7 +462,7 @@ public class GhostSqlSessionTemplate implements SqlSession {
                         throw (RuntimeException) unwrapped;
                     }
                 } finally {
-                    GhostSqlSessionUtils.closeSqlSession(sqlSession, request.getEnvironment().getDataSource());
+                    GhostSqlSessionUtils.closeSqlSession(sqlSession, request.getEnvironment());
                 }
 
             } else {// 命中多个表、或库

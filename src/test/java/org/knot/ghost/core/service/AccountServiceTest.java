@@ -33,13 +33,55 @@ public class AccountServiceTest {
 	@Test
 	public void testInsertAccount() {
 		AccountService service = context.getBean(AccountService.class);
-		//service.insertAccount(account)
+		
+		Account account = new Account();
+
+		 account.setEmail("test@126.com");
+		 account.setFirstName("firstName");
+		 account.setLastName("lastName");
+		 account.setStatus("1");
+		 account.setAddress1("address1");
+		 account.setAddress2("address2");
+		 account.setCity("city");
+		 account.setState("state");
+		 account.setZip("100000");
+		 account.setCountry("country");
+		 account.setPhone("phone");
+		 
+		 account.setUsername("918");
+		 
+		 
+		 
+		 Account account2 = new Account();
+
+	        account2.setEmail("test@126.com");
+	        account2.setFirstName("firstName");
+	        account2.setLastName("lastName");
+	        account2.setStatus("1");
+	        account2.setAddress1("address1");
+	        account2.setAddress2("address2");
+	        account2.setCity("city");
+	        account2.setState("state");
+	        account2.setZip("100000");
+	        account2.setCountry("country");
+	        account2.setPhone("phone");
+	        account2.setUsername("10012");
+		 
+		service.insertAccount(account2, account);
+		
+		
+		
+        
+//       service.insertAccount(account2);
+		
 	}
 
 	@Test
 	public void testUpdateAccount() {
 		fail("Not yet implemented");
 	}
+	
+	
 	
 	
 	private static void testMvel()
@@ -82,6 +124,9 @@ public class AccountServiceTest {
         //datasource2  account1
         a =service.getAccountByName("13");
         System.out.println("username:" + a.getUsername());
+        
+        
+        
         
 		/*
 		Account acount = new Account();

@@ -1,8 +1,8 @@
 package org.knot.ghost.core;
 
 import java.sql.Connection;
-
-import javax.sql.DataSource;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.logging.Log;
@@ -20,15 +20,16 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
- 
 /**
+ * TODO 类实现描述
  * 
- * TODO 类实现描述 
  * @author <a href="mailto:yuxwmail@gmail.com">yuxiaowei</a>
  */
 public final class GhostSqlSessionUtils {
 
-    private static final Log logger = LogFactory.getLog(GhostSqlSessionUtils.class);
+    private static final Log                 logger    = LogFactory.getLog(GhostSqlSessionUtils.class);
+
+    private static final Map<Object, Object> connectResources = new ConcurrentHashMap<Object, Object>();
 
     /**
      * This class can't be instantiated, exposes static utility methods only.
@@ -51,14 +52,16 @@ public final class GhostSqlSessionUtils {
      * @see SpringManagedTransactionFactory
      */
     public static SqlSession getSqlSession(SqlSessionFactory sessionFactory, ExecutorType executorType,
-                                           PersistenceExceptionTranslator exceptionTranslator, Environment environment , Connection conn ) {
+                                           PersistenceExceptionTranslator exceptionTranslator, Environment environment, Connection conn) {
 
         Assert.notNull(sessionFactory, "No SqlSessionFactory specified");
         Assert.notNull(executorType, "No ExecutorType specified");
         Assert.notNull(environment, "No environment specified");
 
-        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(environment.getDataSource());
-
+        // Object o = TransactionSynchronizationManager.getResource(environment.getDataSource());
+        // SqlSessionHolder holder = null;
+        // if (o instanceof SqlSessionHolder) {
+        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(environment);
         if (holder != null && holder.isSynchronizedWithTransaction()) {
             if (holder.getExecutorType() != executorType) {
                 throw new TransientDataAccessResourceException("Cannot change the ExecutorType when there is an existing transaction");
@@ -69,24 +72,24 @@ public final class GhostSqlSessionUtils {
             if (logger.isDebugEnabled()) {
                 logger.debug("Fetched SqlSession [" + holder.getSqlSession() + "] from current transaction");
             }
-
             return holder.getSqlSession();
         }
-
+        
+        // }
         // SqlSessionFactoryBean unwraps TransactionAwareDataSourceProxies but
         // we keep this check for the case that SqlSessionUtils is called from custom code
-//        boolean transactionAware = (dataSource instanceof TransactionAwareDataSourceProxy);
-//        Connection conn;
-//        try {
-//            conn = transactionAware ? dataSource.getConnection() : DataSourceUtils.getConnection(dataSource);
-//        } catch (SQLException e) {
-//            throw new CannotGetJdbcConnectionException("Could not get JDBC Connection for SqlSession", e);
-//        }
-//
-//        System.out.println("111111111111111:" + conn.toString());
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("Creating SqlSession with JDBC Connection [" + conn + "]");
-//        }
+        // boolean transactionAware = (dataSource instanceof TransactionAwareDataSourceProxy);
+        // Connection conn;
+        // try {
+        // conn = transactionAware ? dataSource.getConnection() : DataSourceUtils.getConnection(dataSource);
+        // } catch (SQLException e) {
+        // throw new CannotGetJdbcConnectionException("Could not get JDBC Connection for SqlSession", e);
+        // }
+        //
+        // System.out.println("111111111111111:" + conn.toString());
+        // if (logger.isDebugEnabled()) {
+        // logger.debug("Creating SqlSession with JDBC Connection [" + conn + "]");
+        // }
 
         // Assume either DataSourceTransactionManager or the underlying
         // connection pool already dealt with enabling auto commit.
@@ -97,7 +100,11 @@ public final class GhostSqlSessionUtils {
         // of DSTxMgr, but to do that we would need to be able to call
         // ConnectionHolder.isTransactionActive(), which is protected and not
         // visible to this class.
-        SqlSession session = ((GhostSqlSessionFactory)sessionFactory).openSession(executorType, conn, environment);
+        SqlSession session = ((GhostSqlSessionFactory) sessionFactory).openSession(executorType, conn, environment);
+        
+        
+        
+        
 
         // Register session holder and bind it to enable synchronization.
         //
@@ -116,8 +123,8 @@ public final class GhostSqlSessionUtils {
                 logger.debug("Registering transaction synchronization for SqlSession [" + session + "]");
             }
             holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
-            TransactionSynchronizationManager.bindResource(environment.getDataSource(), holder);
-            TransactionSynchronizationManager.registerSynchronization(new SqlSessionSynchronization(holder, environment.getDataSource()));
+            TransactionSynchronizationManager.bindResource(environment, holder);
+            TransactionSynchronizationManager.registerSynchronization(new SqlSessionSynchronization(holder, environment));
             holder.setSynchronizedWithTransaction(true);
             holder.requested();
         } else {
@@ -137,12 +144,12 @@ public final class GhostSqlSessionUtils {
      * @param session
      * @param sessionFactory
      */
-    public static void closeSqlSession(SqlSession session, DataSource dataSource) {
+    public static void closeSqlSession(SqlSession session, Environment environment) {
 
         Assert.notNull(session, "No SqlSession specified");
-        Assert.notNull(dataSource, "No SqlSessionFactory specified");
+        Assert.notNull(environment, "No SqlSessionFactory specified");
 
-        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(dataSource);
+        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(environment);
         if ((holder != null) && (holder.getSqlSession() == session)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Releasing transactional SqlSession [" + session + "]");
@@ -163,11 +170,11 @@ public final class GhostSqlSessionUtils {
      * @param sessionFactory the SqlSessionFactory which the SqlSession was built with
      * @return true if session is transactional, otherwise false
      */
-    public static boolean isSqlSessionTransactional(SqlSession session, DataSource dataSource) {
+    public static boolean isSqlSessionTransactional(SqlSession session, Environment environment) {
         Assert.notNull(session, "No SqlSession specified");
-        Assert.notNull(dataSource, "No SqlSessionFactory specified");
+        Assert.notNull(environment, "No SqlSessionFactory specified");
 
-        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(dataSource);
+        SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(environment);
 
         return (holder != null) && (holder.getSqlSession() == session);
     }
@@ -181,14 +188,16 @@ public final class GhostSqlSessionUtils {
 
         private final SqlSessionHolder holder;
 
-        private final DataSource       dataSource;
+        // private final DataSource dataSource;
 
-        public SqlSessionSynchronization(SqlSessionHolder holder, DataSource dataSource){
+        private final Environment      environment;
+
+        public SqlSessionSynchronization(SqlSessionHolder holder, Environment environment){
             Assert.notNull(holder, "Parameter 'holder' must be not null");
-            Assert.notNull(dataSource, "Parameter 'sessionFactory' must be not null");
+            Assert.notNull(environment, "Parameter 'sessionFactory' must be not null");
 
             this.holder = holder;
-            this.dataSource = dataSource;
+            this.environment = environment;
         }
 
         /**
@@ -205,7 +214,7 @@ public final class GhostSqlSessionUtils {
          */
         @Override
         public void suspend() {
-            TransactionSynchronizationManager.unbindResource(this.dataSource);
+            TransactionSynchronizationManager.unbindResource(this.environment);
         }
 
         /**
@@ -213,7 +222,7 @@ public final class GhostSqlSessionUtils {
          */
         @Override
         public void resume() {
-            TransactionSynchronizationManager.bindResource(this.dataSource, this.holder);
+            TransactionSynchronizationManager.bindResource(this.environment, this.holder);
         }
 
         /**
@@ -251,7 +260,7 @@ public final class GhostSqlSessionUtils {
             // SpringManagedTransaction will no-op anyway. In addition, closing the session cleans
             // up the same internal resources as rollback.
             if (!this.holder.isOpen()) {
-                TransactionSynchronizationManager.unbindResource(this.dataSource);
+                TransactionSynchronizationManager.unbindResource(this.environment);
                 try {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Transaction synchronization closing SqlSession [" + this.holder.getSqlSession() + "]");

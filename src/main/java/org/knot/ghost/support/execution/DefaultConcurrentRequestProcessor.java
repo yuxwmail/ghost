@@ -47,28 +47,28 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
 
         if (CollectionUtils.isEmpty(requests)) return resultList;
 
-        List<RequestDepository> requestsDepo = fetchConnectionsAndDepositForLaterUse(requests);
-        final CountDownLatch latch = new CountDownLatch(requestsDepo.size());
+//        List<RequestDepository> requestsDepo = fetchConnectionsAndDepositForLaterUse(requests);
+//        final CountDownLatch latch = new CountDownLatch(requestsDepo.size());
+        final CountDownLatch latch = new CountDownLatch(requests.size());
+        
         List<Future<Object>> futures = new ArrayList<Future<Object>>();
         try {
 
-            for (final RequestDepository rdepo : requestsDepo) {
-                final ConcurrentRequest request = rdepo.getOriginalRequest();
-
+//            for (final RequestDepository rdepo : requestsDepo) {
+            for (final ConcurrentRequest request : requests) {
+//                final ConcurrentRequest request = rdepo.getOriginalRequest();
                 futures.add(request.getExecutor().submit(new Callable<Object>() {
 
                     public Object call() throws Exception {
                         try {
                             return executeWith(request.getSqlSessionFactory(), request.getMethod(), request.getArg(),
-                                               request.getExecutorType(), request.getEnvironment(), request.getExceptionTranslator(),
-                                               rdepo.getConnectionToUse(), request.getRtable());
+                                               request.getExecutorType(), request.getEnvironment(), request.getExceptionTranslator(), request.getRtable());
                         } finally {
                             latch.countDown();
                         }
                     }
                 }));
             }
-
             try {
                 latch.await();
             } catch (InterruptedException e) {
@@ -76,21 +76,21 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
             }
 
         } finally {
-            for (RequestDepository depo : requestsDepo) {
-                Connection springCon = depo.getConnectionToUse();
-                DataSource dataSource = depo.getOriginalRequest().getEnvironment().getDataSource();
-                try {
-                    if (springCon != null) {
-                        if (depo.isTransactionAware()) {
-                            springCon.close();
-                        } else {
-                            DataSourceUtils.doReleaseConnection(springCon, dataSource);
-                        }
-                    }
-                } catch (Throwable ex) {
-                    logger.info("Could not close JDBC Connection", ex);
-                }
-            }
+//            for (RequestDepository depo : requestsDepo) {
+//                Connection springCon = depo.getConnectionToUse();
+//                DataSource dataSource = depo.getOriginalRequest().getEnvironment().getDataSource();
+//                try {
+//                    if (springCon != null) {
+//                        if (depo.isTransactionAware()) {
+//                            springCon.close();
+//                        } else {
+//                            DataSourceUtils.doReleaseConnection(springCon, dataSource);
+//                        }
+//                    }
+//                } catch (Throwable ex) {
+//                    logger.info("Could not close JDBC Connection", ex);
+//                }
+//            }
         }
 
         fillResultListWithFutureResults(futures, resultList);
@@ -99,13 +99,24 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
     }
 
     protected Object executeWith(SqlSessionFactory sqlSessionFactory, Method method, Object[] args, ExecutorType executorType,
-                                 Environment environment, PersistenceExceptionTranslator exceptionTranslator, Connection connection, ReplacementTable rtable) {
+                                 Environment environment, PersistenceExceptionTranslator exceptionTranslator, ReplacementTable rtable) {
 
         Object result = null;
-
+        DataSource   dataSource =  environment.getDataSource();
+        Connection connection = null;
+        boolean transactionAware = (dataSource instanceof TransactionAwareDataSourceProxy);
+        try {
+            connection = (transactionAware ? dataSource.getConnection() : DataSourceUtils.doGetConnection(dataSource));
+            System.out.println("con:"+connection);
+        } catch (SQLException ex) {
+            throw new CannotGetJdbcConnectionException("Could not get JDBC Connection for SqlSession", ex);
+        }
+        
+        
         final SqlSession sqlSession = GhostSqlSessionUtils.getSqlSession(sqlSessionFactory, executorType, exceptionTranslator,
                                                                            environment, connection);
         
+        System.out.println("session:" + sqlSession);
         
         // 写入ThradLocal cache
         if (null != connection && null != rtable) {
@@ -117,7 +128,7 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
 
         try {
             result = method.invoke(sqlSession, args);
-            if (!GhostSqlSessionUtils.isSqlSessionTransactional(sqlSession, environment.getDataSource())) {
+            if (!GhostSqlSessionUtils.isSqlSessionTransactional(sqlSession, environment)) {
                 sqlSession.commit();
             }
             return result;
@@ -129,7 +140,7 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
                 throw (RuntimeException)unwrapped;
             }
         } finally {
-            GhostSqlSessionUtils.closeSqlSession(sqlSession, environment.getDataSource());
+            GhostSqlSessionUtils.closeSqlSession(sqlSession, environment);
         }
         return result;
     }
@@ -151,17 +162,18 @@ public class DefaultConcurrentRequestProcessor implements IConcurrentRequestProc
         for (ConcurrentRequest request : requests) {
             DataSource dataSource = request.getEnvironment().getDataSource();
 
-            Connection springCon = null;
+            Connection con = null;
             boolean transactionAware = (dataSource instanceof TransactionAwareDataSourceProxy);
             try {
-                springCon = (transactionAware ? dataSource.getConnection() : DataSourceUtils.doGetConnection(dataSource));
+                con = (transactionAware ? dataSource.getConnection() : DataSourceUtils.doGetConnection(dataSource));
+                System.out.println("con:"+con);
             } catch (SQLException ex) {
                 throw new CannotGetJdbcConnectionException("Could not get JDBC Connection for SqlSession", ex);
             }
 
             RequestDepository depo = new RequestDepository();
             depo.setOriginalRequest(request);
-            depo.setConnectionToUse(springCon);
+            depo.setConnectionToUse(con);
             depo.setTransactionAware(transactionAware);
             depos.add(depo);
         }

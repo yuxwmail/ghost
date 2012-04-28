@@ -4,13 +4,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.ibatis.executor.BatchExecutor;
+import org.apache.ibatis.executor.CachingExecutor;
 import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.executor.ReuseExecutor;
+import org.apache.ibatis.executor.SimpleExecutor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.transaction.Transaction;
 import org.knot.ghost.core.executor.statement.GhostRoutingStatementHandler;
 import org.knot.ghost.router.IGhostRouter;
 import org.knot.ghost.router.support.MyBatisRoutingFact;
@@ -78,4 +84,22 @@ public class GhostConfiguration extends Configuration {
         return statementHandler;
     }
 
+    
+    public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+        executorType = executorType == null ? defaultExecutorType : executorType;
+        executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+        Executor executor;
+        if (ExecutorType.BATCH == executorType) {
+          executor = new BatchExecutor(this, transaction);
+        } else if (ExecutorType.REUSE == executorType) {
+          executor = new ReuseExecutor(this, transaction);
+        } else {
+          executor = new SimpleExecutor(this, transaction);
+        }
+        if (cacheEnabled) {
+          executor = new CachingExecutor(executor);
+        }
+        executor = (Executor) interceptorChain.pluginAll(executor);
+        return executor;
+      }
 }

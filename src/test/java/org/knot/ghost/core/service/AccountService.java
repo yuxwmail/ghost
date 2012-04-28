@@ -22,8 +22,10 @@ public class AccountService {
     }
 
   @Transactional
-  public void insertAccount(Account account) {
+  public void insertAccount(Account account, Account account2) {
     accountMapper.insertAccount(account);
+    accountMapper.insertAccount(account2);
+//    int j = 3/0;
   }
 
   @Transactional

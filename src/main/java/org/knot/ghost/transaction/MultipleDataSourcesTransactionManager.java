@@ -20,7 +20,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
 
 
 
-public class MultipleDataSourcesTransactionManager extends AbstractPlatformTransactionManager
+public class MultipleDataSourcesTransactionManager extends AbstractGHostPlatformTransactionManager
         implements InitializingBean {
     protected transient Logger               logger              = org.slf4j.LoggerFactory
                                                                          .getLogger(MultipleDataSourcesTransactionManager.class);
