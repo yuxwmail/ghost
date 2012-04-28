@@ -1,0 +1,72 @@
+create database demo;
+use demo;
+
+CREATE TABLE `account` (
+  `userid` varchar(80) NOT NULL,
+  `email` varchar(80) NOT NULL,
+  `firstname` varchar(80) NOT NULL,
+  `lastname` varchar(80) NOT NULL,
+  `status` varchar(2) DEFAULT NULL,
+  `addr1` varchar(80) NOT NULL,
+  `addr2` varchar(40) DEFAULT NULL,
+  `city` varchar(80) NOT NULL,
+  `state` varchar(80) NOT NULL,
+  `zip` varchar(20) NOT NULL,
+  `country` varchar(20) NOT NULL,
+  `phone` varchar(80) NOT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+
+CREATE TABLE `account1` (
+  `userid` varchar(80) NOT NULL,
+  `email` varchar(80) NOT NULL,
+  `firstname` varchar(80) NOT NULL,
+  `lastname` varchar(80) NOT NULL,
+  `status` varchar(2) DEFAULT NULL,
+  `addr1` varchar(80) NOT NULL,
+  `addr2` varchar(40) DEFAULT NULL,
+  `city` varchar(80) NOT NULL,
+  `state` varchar(80) NOT NULL,
+  `zip` varchar(20) NOT NULL,
+  `country` varchar(20) NOT NULL,
+  `phone` varchar(80) NOT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+
+create database test;
+use test;
+
+CREATE TABLE `account` (
+  `userid` varchar(80) NOT NULL,
+  `email` varchar(80) NOT NULL,
+  `firstname` varchar(80) NOT NULL,
+  `lastname` varchar(80) NOT NULL,
+  `status` varchar(2) DEFAULT NULL,
+  `addr1` varchar(80) NOT NULL,
+  `addr2` varchar(40) DEFAULT NULL,
+  `city` varchar(80) NOT NULL,
+  `state` varchar(80) NOT NULL,
+  `zip` varchar(20) NOT NULL,
+  `country` varchar(20) NOT NULL,
+  `phone` varchar(80) NOT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+
+CREATE TABLE `account1` (
+  `userid` varchar(80) NOT NULL,
+  `email` varchar(80) NOT NULL,
+  `firstname` varchar(80) NOT NULL,
+  `lastname` varchar(80) NOT NULL,
+  `status` varchar(2) DEFAULT NULL,
+  `addr1` varchar(80) NOT NULL,
+  `addr2` varchar(40) DEFAULT NULL,
+  `city` varchar(80) NOT NULL,
+  `state` varchar(80) NOT NULL,
+  `zip` varchar(20) NOT NULL,
+  `country` varchar(20) NOT NULL,
+  `phone` varchar(80) NOT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
