@@ -11,8 +11,8 @@
 
 
   <properties>
-	<java_source_version>1.5</java_source_version>
-	<java_target_version>1.5</java_target_version>
+	<java_source_version>1.6</java_source_version>
+	<java_target_version>1.6</java_target_version>
 	<file_encoding>UTF-8</file_encoding>
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

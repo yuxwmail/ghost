@@ -1,13 +1,13 @@
 package org.knot.ghost.router.support;
 
 /**
- * status ×´Ì¬
+ * status çŠ¶æ€
  * 
  * @author <a href="mailto:yuxwmail@gmail.com">yuxiaowei</a>
  */
 public enum StatusEnum {
 
-    //-1:Î´³õÊ¼»¯ 0£º¸üĞÂ     1£º²éÑ¯
+    //-1:æœªåˆå§‹åŒ– 0ï¼šæ›´æ–°     1ï¼šæŸ¥è¯¢
     READ((short)1), UPDATE((short)0), INIT((short)-1);
 
     private Short value;
