@@ -15,5 +15,5 @@ ghost
    参考https://github.com/yuxwmail/ghost/blob/master/src/test/resources/applicationContext-ghost.xml
 
 
-离职代码参考
+例子代码参考
 https://github.com/yuxwmail/ghost/blob/master/src/test/java/org/knot/ghost/core/Main.java
