@@ -7,6 +7,9 @@ ghost
 * 与spring3、mybatis3无缝集成，不需要修改以前任何代码；
 * 其他分表分库基本功能
 
+架构图
+
+
 ## 例子
 * 根据业务配置rule.xml
    参考https://github.com/yuxwmail/ghost/blob/master/src/test/resources/rules.xml
