@@ -8,7 +8,7 @@ ghost
 * 其他分表分库基本功能
 
 架构图
-
+![架构设计](http://cloud.github.com/downloads/yuxwmail/ghost/ghost.png)
 
 ## 例子
 * 根据业务配置rule.xml
